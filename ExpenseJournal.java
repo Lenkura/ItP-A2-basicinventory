@@ -19,10 +19,10 @@ public class ExpenseJournal {
 
 		gt.setXY(50, 40);
 		gt.print("Expense\n");
-		gt.addTextField("Enter an Expense Name", 150); // Text Field 0
+		gt.addTextField("", 150); // Text Field 0
 		gt.setXY(220, 40);
 		gt.print("Value\n");
-		gt.addTextField("Value (Number)", 150); // Text Field 1
+		gt.addTextField("", 150); // Text Field 1
 		gt.setXY(50, 80);
 		gt.addButton("Add Expense", this, "addExpense");
 		gt.addButton("Search for Expense", this, "findExpense");
@@ -37,7 +37,7 @@ public class ExpenseJournal {
 		gt.println("");
 		gt.addButton("Set Category", this, "setCategory");
 		gt.println("");
-		gt.addButton("Sort Alphabetically", this, "sortalpha");
+		gt.addButton("Sort Alphabetically", this, "sortAlpha");
 		gt.println("");
 		gt.addButton("Sort by Category", this, "sortCategory");
 		gt.println("");
@@ -49,9 +49,11 @@ public class ExpenseJournal {
 		gt.addTextField("", 100); // Text Field 2
 		gt.println("");
 		gt.addButton("Recalculate", this, "rTotal");
-		
-		gt.setXY(500,600);
+
+		gt.setXY(500, 600);
 		gt.addButton("Test block", this, "Test");
+		gt.addButton("Test clear", this, "clearList");
+		gt.addButton("Test fill", this, "fillList");
 	}
 
 	public void addExpense() {
@@ -95,7 +97,7 @@ public class ExpenseJournal {
 			// find matching songs that contain the query fragment
 			if (this.expense[i].toLowerCase().contains(target)) {
 				// as each one is found, add it to the list
-				message = this.expense[i]+" "+ this.cost[i];
+				message = this.expense[i] + " " + this.cost[i];
 				gt.addElementToList(0, message);
 				// List counter goes up
 				this.listNumber += 1;
@@ -148,13 +150,88 @@ public class ExpenseJournal {
 
 			this.currentNumExpenses += -1;
 			// remove item from the list
+			gt.showMessageDialog("Entry Removed");
 			clearList();
 			fillList();
-			}
 		}
+	}
 
 	public void editExpense() {
+		if (gt.getSelectedElementFromList(0) == null) {
+			gt.showMessageDialog("Please Select an Expense to delete");
 
+		} else {
+			int EditID = matchExpense((String) gt.getSelectedElementFromList(0));
+			this.expense[EditID] = gt.getInputString("Change Entry Name\n Current Name: " + this.expense[EditID]);
+			this.cost[EditID] = Double
+					.parseDouble(gt.getInputString("Change Entry Value\n Current Value: " + this.cost[EditID]));
+			gt.showMessageDialog("Entry Changed");
+			clearList();
+			fillList();
+		}
+	}
+
+	public void sortAlpha() {
+		clearList();
+		// Bubble Sort for alphabetical order. Whenever a switch is made, we also
+		// switched the corresponding positions in the Location array so data stayed
+		// together
+
+		int i = 0;
+		while (i < this.currentNumExpenses - 1) {
+			int j=0;
+			while (j < this.currentNumExpenses - i - 1) {
+				if (this.expense[j].compareToIgnoreCase(this.expense[j + 1]) > 0) {
+					String temp = this.expense[j];
+					this.expense[j] = this.expense[j + 1];
+					this.expense[j + 1] = temp;
+					double temp1 = this.cost[j];
+					this.cost[j] = this.cost[j + 1];
+					this.cost[j + 1] = temp1;
+
+				}
+				j += 1;
+			}
+			i += 1;
+		}
+		// Array should now be in alphabetical order, just display it
+		fillList();
+	}
+
+	public void sortExpense() {
+		clearList();
+//
+//	    { 
+//	        for (int i = 0; i < currentNumExpenses-1; i++) 
+//	            for (int j = 0; j < currentNumExpenses-i-1; j++) 
+//	                if (this.cost[j] > this.cost[j+1]) 
+//	                { 
+//	                    // swap arr[j+1] and arr[i] 
+//	                    double temp = this.cost[j]; 
+//	                    this.cost[j] = this.cost[j+1]; 
+//	                    this.cost[j+1] = temp; 
+//	                } 
+//	    } 
+
+		int i = 0;
+		while (i < this.currentNumExpenses - 1) {
+			int j=0;
+			while (j < this.currentNumExpenses - i - 1) {
+				if (this.cost[j] > this.cost[j + 1]) {
+					double temp = this.cost[j];
+					this.cost[j] = this.cost[j + 1];
+					this.cost[j+1] = temp;
+					String temp1 = this.expense[j];
+					this.expense[j] = this.expense[j+1];
+					this.expense[j+1] = temp1;
+
+				}
+				j += 1;
+
+			}
+			i += 1;
+		}
+		fillList();
 	}
 
 	public void rTotal() {
@@ -176,10 +253,11 @@ public class ExpenseJournal {
 		}
 
 	}
+
 	public void fillList() {
 		int i = 0;
 		while (i < this.currentNumExpenses) {
-			String message = this.expense[this.currentNumExpenses] + " " + this.cost[this.currentNumExpenses];
+			String message = this.expense[i] + " " + this.cost[i];
 			gt.addElementToList(0, message);
 			i += 1;
 			// List counter goes up
@@ -204,13 +282,11 @@ public class ExpenseJournal {
 		String[] elementsofEntry = Entry.split(" ");
 		String name = elementsofEntry[0];
 		double value = Double.parseDouble(elementsofEntry[1]);
-
 		int i = 0;
-		while (i < this.currentNumExpenses && this.expense[i].equalsIgnoreCase(name) == false)
-			if (this.cost[i] != value) {
-				i += 1;
-			} else {
-			}
+		// talk about issues here with formatting
+		while (i < this.currentNumExpenses
+				&& !(this.expense[i].equalsIgnoreCase(name) == true && this.cost[i] == (value)))
+			i += 1;
 		return i;
 	}
 
@@ -240,17 +316,30 @@ public class ExpenseJournal {
 	}
 
 	public void Test() {
-		this.expense[0] = "Food";
+		this.expense[0] = "Laser";
 		this.cost[0] = 12.5;
 		this.expense[1] = "Food";
 		this.cost[1] = 2.5;
-		this.expense[2] = "Food";
+		this.expense[2] = "Tiger";
 		this.cost[2] = 1.5;
-		this.expense[3] = "Food";
+		this.expense[3] = "Man";
 		this.cost[3] = 12;
-		currentNumExpenses = 4;
-		
+		this.expense[4] = "are";
+		this.cost[4] = 5.50;
+		this.expense[5] = "sop";
+		this.cost[5] = 19.99;
+		this.expense[6] = "wqe";
+		this.cost[6] = 56.21;
+		this.expense[7] = "let";
+		this.cost[7] = 7.6;
+		this.expense[8] = "bone";
+		this.cost[8] = 45.5;
+		this.expense[9] = "er";
+		this.cost[9] = 112;
+		currentNumExpenses = 10;
+
 	}
+
 	public static void main(String[] args) {
 		ExpenseJournal assignment2 = new ExpenseJournal();
 
